@@ -17,19 +17,19 @@ export const aiTranscriptions = async ({
   data.append('model', model);
   data.append('file', fileStream);
 
-  const modelData = getSTTModel(model);
+  const modelData = getSTTModel(model) || {};
   const aiAxiosConfig = getAxiosConfig();
 
   const { data: result } = await axios<{ text: string }>({
     method: 'post',
-    ...(modelData.requestUrl
+    ...(modelData?.requestUrl
       ? { url: modelData.requestUrl }
       : {
           baseURL: aiAxiosConfig.baseUrl,
           url: '/audio/transcriptions'
         }),
     headers: {
-      Authorization: modelData.requestAuth
+      Authorization: modelData?.requestAuth
         ? `Bearer ${modelData.requestAuth}`
         : aiAxiosConfig.authorization,
       ...data.getHeaders(),
