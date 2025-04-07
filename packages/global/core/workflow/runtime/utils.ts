@@ -35,32 +35,26 @@ export const getMaxHistoryLimitFromNodes = (nodes: StoreNodeItemType[]): number 
   1. Get the interactive data
   2. Check that the workflow starts at the interaction node
 */
-export const getLastInteractiveValue = (histories: ChatItemType[]) => {
-  const lastAIMessage = [...histories].reverse().find((item) => item.obj === ChatRoleEnum.AI);
+export const getLastInteractiveValue = (lastValue: any) => {
+  if (
+    !lastValue ||
+    lastValue.type !== ChatItemValueTypeEnum.interactive ||
+    !lastValue.interactive
+  ) {
+    return null;
+  }
 
-  if (lastAIMessage) {
-    const lastValue = lastAIMessage.value[lastAIMessage.value.length - 1];
+  // Check is user select
+  if (
+    lastValue.interactive.type === 'userSelect' &&
+    !lastValue.interactive.params.userSelectedVal
+  ) {
+    return lastValue.interactive;
+  }
 
-    if (
-      !lastValue ||
-      lastValue.type !== ChatItemValueTypeEnum.interactive ||
-      !lastValue.interactive
-    ) {
-      return null;
-    }
-
-    // Check is user select
-    if (
-      lastValue.interactive.type === 'userSelect' &&
-      !lastValue.interactive.params.userSelectedVal
-    ) {
-      return lastValue.interactive;
-    }
-
-    // Check is user input
-    if (lastValue.interactive.type === 'userInput' && !lastValue.interactive.params.submitted) {
-      return lastValue.interactive;
-    }
+  // Check is user input
+  if (lastValue.interactive.type === 'userInput' && !lastValue.interactive.params.submitted) {
+    return lastValue.interactive;
   }
 
   return null;
@@ -89,57 +83,51 @@ export const initWorkflowEdgeStatus = (
 
 export const getWorkflowEntryNodeIds = (
   nodes: (StoreNodeItemType | RuntimeNodeItemType)[],
-  histories?: ChatItemType[]
+  interactive?: any
 ) => {
   // 检查交互状态
-  if (histories && histories.length > 0) {
-    const lastInteractive = getLastInteractiveValue(histories);
-    if (lastInteractive?.context) {
-      // 1. 首先检查保存的entryNodeIds是否在当前nodes中存在
-      if (lastInteractive.entryNodeIds?.length > 0) {
-        // 验证这些entryNodeIds是否在当前节点列表中
-        const validEntryNodeIds = lastInteractive.entryNodeIds.filter((nodeId) =>
-          nodes.some((node) => node.nodeId === nodeId)
-        );
+  if (interactive?.context) {
+    // 1. 首先检查保存的entryNodeIds是否在当前nodes中存在
+    if (interactive.entryNodeIds?.length > 0) {
+      // 验证这些entryNodeIds是否在当前节点列表中
+      const validEntryNodeIds = interactive.entryNodeIds.filter((nodeId: string) =>
+        nodes.some((node) => node.nodeId === nodeId)
+      );
 
-        if (validEntryNodeIds.length > 0) {
-          return validEntryNodeIds;
-        }
+      if (validEntryNodeIds.length > 0) {
+        return validEntryNodeIds;
+      }
+    }
+
+    // 2. 如果entryNodeIds不可用，再递归查找App节点
+    const findAppNodeInContext = (
+      context: InteractiveContext | undefined,
+      currentNodes: (StoreNodeItemType | RuntimeNodeItemType)[]
+    ): string[] | null => {
+      if (!context) return null;
+
+      // 尝试在当前节点列表中查找匹配的App节点
+      const appNode = currentNodes.find((node) => node.nodeId === context.interactiveAppNodeId);
+      if (appNode) {
+        return [appNode.nodeId];
       }
 
-      // 2. 如果entryNodeIds不可用，再递归查找App节点
-      const findAppNodeInContext = (
-        context: InteractiveContext | undefined,
-        currentNodes: (StoreNodeItemType | RuntimeNodeItemType)[]
-      ): string[] | null => {
-        if (!context) return null;
+      // 如果当前层没找到，递归查找父上下文
+      return findAppNodeInContext(context.parentContext, currentNodes);
+    };
 
-        // 尝试在当前节点列表中查找匹配的App节点
-        const appNode = currentNodes.find((node) => node.nodeId === context.interactiveAppNodeId);
-        if (appNode) {
-          return [appNode.nodeId];
-        }
-
-        // 如果当前层没找到，递归查找父上下文
-        return findAppNodeInContext(context.parentContext, currentNodes);
-      };
-
-      // 先尝试从父上下文查找
-      if (lastInteractive.context.parentContext) {
-        const foundNodeIdsFromParent = findAppNodeInContext(
-          lastInteractive.context.parentContext,
-          nodes
-        );
-        if (foundNodeIdsFromParent) {
-          return foundNodeIdsFromParent;
-        }
+    // 先尝试从父上下文查找
+    if (interactive.context.parentContext) {
+      const foundNodeIdsFromParent = findAppNodeInContext(interactive.context.parentContext, nodes);
+      if (foundNodeIdsFromParent) {
+        return foundNodeIdsFromParent;
       }
+    }
 
-      // 如果父上下文没找到，尝试从当前上下文查找
-      const foundNodeIds = findAppNodeInContext(lastInteractive.context, nodes);
-      if (foundNodeIds) {
-        return foundNodeIds;
-      }
+    // 如果父上下文没找到，尝试从当前上下文查找
+    const foundNodeIds = findAppNodeInContext(interactive.context, nodes);
+    if (foundNodeIds) {
+      return foundNodeIds;
     }
   }
 
