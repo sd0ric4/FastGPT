@@ -324,10 +324,9 @@ export async function dispatchWorkFlow(data: Props): Promise<DispatchFlowRespons
     });
 
     if (props.mode === 'debug') {
-      debugNextStepRunNodes = debugNextStepRunNodes.concat([
-        ...nextStepActiveNodes,
-        ...nextStepSkipNodes
-      ]);
+      debugNextStepRunNodes = debugNextStepRunNodes.concat(
+        props.lastInteractive ? nextStepActiveNodes : [...nextStepActiveNodes, ...nextStepSkipNodes]
+      );
       return {
         nextStepActiveNodes: [],
         nextStepSkipNodes: []

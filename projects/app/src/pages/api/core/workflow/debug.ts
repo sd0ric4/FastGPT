@@ -10,6 +10,7 @@ import { NextAPI } from '@/service/middleware/entry';
 import { ReadPermissionVal } from '@fastgpt/global/support/permission/constant';
 import { defaultApp } from '@/web/core/app/constants';
 import { WORKFLOW_MAX_RUN_TIMES } from '@fastgpt/service/core/workflow/constants';
+import { getLastInteractiveValue } from '@fastgpt/global/core/workflow/runtime/utils';
 
 async function handler(
   req: NextApiRequest,
@@ -44,6 +45,7 @@ async function handler(
 
   // auth balance
   const { timezone, externalProvider } = await getUserChatInfoAndAuthTeamPoints(tmbId);
+  const lastInteractive = getLastInteractiveValue(history) || undefined;
 
   /* start process */
   const { flowUsages, flowResponses, debugResponse, newVariables, workflowInteractiveResponse } =
@@ -64,6 +66,7 @@ async function handler(
         tmbId
       },
       runtimeNodes: nodes,
+      lastInteractive,
       runtimeEdges: edges,
       variables,
       query: query,
