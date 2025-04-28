@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import MyModal from '@fastgpt/web/components/common/MyModal';
 import { useUserStore } from '@/web/support/user/useUserStore';
-import { Button, ModalBody, ModalFooter, useDisclosure } from '@chakra-ui/react';
+import { Button, Dialog, useDisclosure } from '@chakra-ui/react';
 import { useTranslation } from 'next-i18next';
 import { LOGO_ICON } from '@fastgpt/global/common/system/constants';
 import { getSystemMsgModalData } from '@/web/support/user/inform/api';
@@ -13,7 +13,7 @@ const SystemMsgModal = ({}: {}) => {
   const { t } = useTranslation();
   const { systemMsgReadId, setSysMsgReadId } = useUserStore();
 
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { open, onOpen, onClose } = useDisclosure();
 
   const { data } = useRequest2(getSystemMsgModalData, {
     refreshDeps: [systemMsgReadId],
@@ -33,16 +33,16 @@ const SystemMsgModal = ({}: {}) => {
 
   return (
     <MyModal
-      isOpen={isOpen}
+      isOpen={open}
       iconSrc={LOGO_ICON}
       title={t('common:support.user.inform.System message')}
     >
-      <ModalBody overflow={'auto'}>
+      <Dialog.Body overflow={'auto'}>
         <Markdown source={data?.content} />
-      </ModalBody>
-      <ModalFooter>
+      </Dialog.Body>
+      <Dialog.Footer>
         <Button onClick={onclickRead}>{t('common:support.inform.Read')}</Button>
-      </ModalFooter>
+      </Dialog.Footer>
     </MyModal>
   );
 };
