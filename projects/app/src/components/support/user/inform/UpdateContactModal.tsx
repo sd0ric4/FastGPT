@@ -1,5 +1,5 @@
 import React from 'react';
-import { ModalBody, Box, Flex, Input, ModalFooter, Button, HStack } from '@chakra-ui/react';
+import { Dialog, Box, Flex, Input, Button, HStack } from '@chakra-ui/react';
 import MyModal from '@fastgpt/web/components/common/MyModal';
 import { useTranslation } from 'next-i18next';
 import { useForm } from 'react-hook-form';
@@ -86,7 +86,7 @@ const UpdateContactModal = ({
             : t('common:contact_way')
         }
       >
-        <ModalBody px={10}>
+        <Dialog.Body px={10}>
           <Flex flexDirection="column">
             <HStack px="6" py="3" color="primary.600" bgColor="primary.50" borderRadius="md">
               <Icon name="common/info" w="1rem" />
@@ -112,19 +112,19 @@ const UpdateContactModal = ({
               <SendCodeBox username={account} />
             </Flex>
           </Flex>
-        </ModalBody>
-        <ModalFooter>
+        </Dialog.Body>
+        <Dialog.Footer>
           <Button mr={3} variant={'whiteBase'} onClick={onClose}>
             {t('common:common.Cancel')}
           </Button>
           <Button
-            isLoading={isLoading}
-            isDisabled={!account || !verifyCode}
+            loading={isLoading}
+            disabled={!account || !verifyCode}
             onClick={handleSubmit((data) => onSubmit(data))}
           >
             {t('common:common.Confirm')}
           </Button>
-        </ModalFooter>
+        </Dialog.Footer>
       </MyModal>
     </>
   );
