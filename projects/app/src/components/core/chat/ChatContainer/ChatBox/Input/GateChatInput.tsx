@@ -89,7 +89,34 @@ const GateChatInput = ({
     [llmModelList]
   );
   const defaultModel = useMemo(() => getWebDefaultLLMModel(llmModelList).model, [llmModelList]);
-  const [selectedModel, setSelectedModel] = useState(defaultModel);
+
+  // 从 localStorage 获取保存的模型，如果没有则使用默认模型
+  const getStoredModel = useCallback(() => {
+    try {
+      const stored = localStorage.getItem('gateSelectedModel');
+      if (stored && llmModelList.length > 0) {
+        // 检查存储的模型是否仍然存在于当前模型列表中
+        const isValidModel = llmModelList.some((model) => model.model === stored);
+        return isValidModel ? stored : defaultModel;
+      }
+      return defaultModel;
+    } catch (error) {
+      console.warn('Failed to get stored model from localStorage:', error);
+      return defaultModel;
+    }
+  }, [defaultModel, llmModelList]);
+
+  const [selectedModel, setSelectedModel] = useState(() => getStoredModel());
+
+  // 包装 setSelectedModel 以同时保存到 localStorage
+  const handleModelChange = useCallback((model: string) => {
+    setSelectedModel(model);
+    try {
+      localStorage.setItem('gateSelectedModel', model);
+    } catch (error) {
+      console.warn('Failed to save selected model to localStorage:', error);
+    }
+  }, []);
 
   const showModelSelector = useMemo(() => {
     return router.pathname === '/chat/gate';
@@ -99,6 +126,14 @@ const GateChatInput = ({
   const showTools = useMemo(() => {
     return router.pathname === '/chat/gate';
   }, [router.pathname]);
+
+  // 当模型列表加载完成后，重新设置选中的模型
+  useEffect(() => {
+    if (llmModelList.length > 0) {
+      const storedModel = getStoredModel();
+      setSelectedModel(storedModel);
+    }
+  }, [llmModelList, getStoredModel]);
 
   // 当模型选择变化时更新appForm
   useEffect(() => {
@@ -297,7 +332,7 @@ const GateChatInput = ({
               list={modelList}
               value={selectedModel}
               showAvatar={false}
-              onChange={setSelectedModel}
+              onChange={handleModelChange}
               bg={'myGray.50'}
               borderRadius={'lg'}
             />
