@@ -14,13 +14,10 @@ const PageContainer = ({
       <MyBox
         isLoading={isLoading}
         h={'100%'}
-        borderColor={'borderColor.base'}
-        borderWidth={[0, 1]}
-        boxShadow={'1.5'}
         overflow={'overlay'}
         bg={'myGray.25'}
-        borderRadius={[0, '16px']}
-        overflowX={'hidden'}
+        borderRadius={[0, '12px']}
+        overflowX={'visible'}
         {...insertProps}
       >
         {children}
