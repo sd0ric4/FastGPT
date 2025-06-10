@@ -1,16 +1,5 @@
-import React, { useRef, useEffect, useCallback, useState } from 'react';
-import {
-  Box,
-  Flex,
-  Text,
-  Radio,
-  RadioGroup,
-  Stack,
-  Input,
-  FormControl,
-  FormLabel,
-  Link
-} from '@chakra-ui/react';
+import React, { useCallback, useState } from 'react';
+import { Box, Flex, Text, Input, FormControl, Link } from '@chakra-ui/react';
 import { useTranslation } from 'next-i18next';
 import ToolSelect from './ToolSelect';
 import type { putUpdateGateConfigData } from '@fastgpt/global/support/user/team/gate/api';
