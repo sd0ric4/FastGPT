@@ -8,7 +8,6 @@ import MyIcon from '@fastgpt/web/components/common/Icon';
 import { useTranslation } from 'next-i18next';
 import QuestionTip from '@fastgpt/web/components/common/MyTooltip/QuestionTip';
 import dynamic from 'next/dynamic';
-import type { TeamSubSchema } from '@fastgpt/global/support/wallet/sub/type';
 
 const ModelPriceModal = dynamic(() =>
   import('@/components/core/ai/ModelTable').then((mod) => mod.ModelPriceModal)
@@ -16,12 +15,10 @@ const ModelPriceModal = dynamic(() =>
 
 const StandardPlanContentList = ({
   level,
-  mode,
-  standplan
+  mode
 }: {
   level: `${StandardSubLevelEnum}`;
   mode: `${SubModeEnum}`;
-  standplan?: TeamSubSchema;
 }) => {
   const { t } = useTranslation();
   const { subPlans } = useSystemStore();
@@ -34,9 +31,9 @@ const StandardPlanContentList = ({
       price: plan.price * (mode === SubModeEnum.month ? 1 : 10),
       level: level as `${StandardSubLevelEnum}`,
       ...standardSubLevelMap[level as `${StandardSubLevelEnum}`],
-      maxTeamMember: standplan?.maxTeamMember || plan.maxTeamMember,
-      maxAppAmount: standplan?.maxApp || plan.maxAppAmount,
-      maxDatasetAmount: standplan?.maxDataset || plan.maxDatasetAmount,
+      maxTeamMember: plan.maxTeamMember,
+      maxAppAmount: plan.maxAppAmount,
+      maxDatasetAmount: plan.maxDatasetAmount,
       chatHistoryStoreDuration: plan.chatHistoryStoreDuration,
       maxDatasetSize: plan.maxDatasetSize,
       permissionCustomApiKey: plan.permissionCustomApiKey,
@@ -46,14 +43,7 @@ const StandardPlanContentList = ({
       permissionWebsiteSync: plan.permissionWebsiteSync,
       permissionTeamOperationLog: plan.permissionTeamOperationLog
     };
-  }, [
-    subPlans?.standard,
-    level,
-    mode,
-    standplan?.maxTeamMember,
-    standplan?.maxApp,
-    standplan?.maxDataset
-  ]);
+  }, [subPlans?.standard, level, mode]);
 
   return planContent ? (
     <Grid gap={4} fontSize={'sm'} fontWeight={500}>

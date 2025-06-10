@@ -199,7 +199,7 @@ export const rawText2Chunks = async ({
       .map((item) => ({
         q: item[0] || '',
         a: item[1] || '',
-        indexes: item.slice(2).filter((item) => item.trim()),
+        indexes: item.slice(2),
         imageIdList
       }))
       .filter((item) => item.q || item.a);

@@ -14,10 +14,7 @@ export const getSafeEnv = () => {
   return {
     LOG_LEVEL: process.env.LOG_LEVEL,
     STORE_LOG_LEVEL: process.env.STORE_LOG_LEVEL,
-    NODE_ENV: process.env.NODE_ENV,
-    HTTP_PROXY: process.env.HTTP_PROXY,
-    HTTPS_PROXY: process.env.HTTPS_PROXY,
-    NO_PROXY: process.env.NO_PROXY
+    NODE_ENV: process.env.NODE_ENV
   };
 };
 

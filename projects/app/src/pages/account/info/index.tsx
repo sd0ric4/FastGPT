@@ -1,5 +1,5 @@
 'use client';
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import {
   Box,
   Flex,
@@ -69,6 +69,10 @@ const Info = () => {
   const { teamPlanStatus, initUserInfo } = useUserStore();
   const standardPlan = teamPlanStatus?.standardConstants;
   const { isOpen: isOpenContact, onClose: onCloseContact, onOpen: onOpenContact } = useDisclosure();
+
+  useMount(() => {
+    initUserInfo();
+  });
 
   return (
     <AccountContainer>
@@ -398,77 +402,55 @@ const PlanUsage = () => {
     }
   });
 
-  const valueColorSchema = useCallback((val: number) => {
-    if (val < 50) return 'green';
-    if (val < 80) return 'yellow';
-    return 'red';
-  }, []);
-
-  const datasetIndexUsageMap = useMemo(() => {
+  const datasetUsageMap = useMemo(() => {
     if (!teamPlanStatus) {
       return {
+        colorScheme: 'green',
         value: 0,
-        max: t('account_info:unlimited'),
-        rate: 0
+        maxSize: t('account_info:unlimited'),
+        usedSize: 0
       };
     }
-    const rate = teamPlanStatus.usedDatasetIndexSize / teamPlanStatus.datasetMaxSize;
+    const rate = teamPlanStatus.usedDatasetSize / teamPlanStatus.datasetMaxSize;
+
+    const colorScheme = (() => {
+      if (rate < 0.5) return 'green';
+      if (rate < 0.8) return 'yellow';
+      return 'red';
+    })();
 
     return {
-      value: teamPlanStatus.usedDatasetIndexSize,
-      rate: rate * 100,
-      max: teamPlanStatus.datasetMaxSize || 1
+      colorScheme,
+      value: rate * 100,
+      maxSize: teamPlanStatus.datasetMaxSize || t('account_info:unlimited'),
+      usedSize: teamPlanStatus.usedDatasetSize
     };
-  }, [t, teamPlanStatus]);
+  }, [teamPlanStatus, t]);
   const aiPointsUsageMap = useMemo(() => {
     if (!teamPlanStatus) {
       return {
+        colorScheme: 'green',
         value: 0,
-        max: t('account_info:unlimited'),
-        rate: 0
+        maxSize: t('account_info:unlimited'),
+        usedSize: 0
       };
     }
 
+    const rate = teamPlanStatus.usedPoints / teamPlanStatus.totalPoints;
+
+    const colorScheme = (() => {
+      if (rate < 0.5) return 'green';
+      if (rate < 0.8) return 'yellow';
+      return 'red';
+    })();
+
     return {
-      value: Math.round(teamPlanStatus.usedPoints),
-      max: teamPlanStatus.totalPoints,
-      rate: (teamPlanStatus.usedPoints / teamPlanStatus.totalPoints) * 100
+      colorScheme,
+      value: rate * 100,
+      max: teamPlanStatus.totalPoints ? teamPlanStatus.totalPoints : t('account_info:unlimited'),
+      used: teamPlanStatus.usedPoints ? Math.round(teamPlanStatus.usedPoints) : 0
     };
-  }, [t, teamPlanStatus]);
-
-  const limitData = useMemo(() => {
-    if (!teamPlanStatus) {
-      return [];
-    }
-
-    return [
-      {
-        label: t('account_info:member_amount'),
-        value: teamPlanStatus.usedMember,
-        max: teamPlanStatus?.standardConstants?.maxTeamMember || t('account_info:unlimited'),
-        rate:
-          (teamPlanStatus.usedMember / (teamPlanStatus?.standardConstants?.maxTeamMember || 1)) *
-          100
-      },
-      {
-        label: t('account_info:app_amount'),
-        value: teamPlanStatus.usedAppAmount,
-        max: teamPlanStatus?.standardConstants?.maxAppAmount || t('account_info:unlimited'),
-        rate:
-          (teamPlanStatus.usedAppAmount / (teamPlanStatus?.standardConstants?.maxAppAmount || 1)) *
-          100
-      },
-      {
-        label: t('account_info:dataset_amount'),
-        value: teamPlanStatus.usedDatasetSize,
-        max: teamPlanStatus?.standardConstants?.maxDatasetAmount || t('account_info:unlimited'),
-        rate:
-          (teamPlanStatus.usedDatasetSize /
-            (teamPlanStatus?.standardConstants?.maxDatasetAmount || 1)) *
-          100
-      }
-    ];
-  }, [t, teamPlanStatus]);
+  }, [teamPlanStatus, t]);
 
   return standardPlan ? (
     <Box mt={[6, 0]}>
@@ -549,7 +531,6 @@ const PlanUsage = () => {
             <StandardPlanContentList
               level={standardPlan?.currentSubLevel}
               mode={standardPlan.currentMode}
-              standplan={standardPlan}
             />
           </Box>
         </Box>
@@ -593,15 +574,15 @@ const PlanUsage = () => {
                 {t('account_info:knowledge_base_capacity')}
               </Box>
               <Box color={'myGray.600'} ml={2}>
-                {datasetIndexUsageMap.value}/{datasetIndexUsageMap.max}
+                {datasetUsageMap.usedSize}/{datasetUsageMap.maxSize}
               </Box>
             </Flex>
           </Flex>
-          <Box mt={1}>
+          <Box mt={3}>
             <Progress
               size={'sm'}
-              value={datasetIndexUsageMap.rate}
-              colorScheme={valueColorSchema(datasetIndexUsageMap.rate)}
+              value={datasetUsageMap.value}
+              colorScheme={datasetUsageMap.colorScheme}
               borderRadius={'md'}
               isAnimated
               hasStripe
@@ -610,7 +591,7 @@ const PlanUsage = () => {
             />
           </Box>
         </Box>
-        <Box mt="6" width={'100%'} fontSize={'sm'}>
+        <Box mt="9" width={'100%'} fontSize={'sm'}>
           <Flex alignItems={'center'}>
             <Flex alignItems={'center'}>
               <Box fontWeight={'bold'} color={'myGray.900'}>
@@ -618,15 +599,15 @@ const PlanUsage = () => {
               </Box>
               <QuestionTip ml={1} label={t('account_info:ai_points_usage_tip')}></QuestionTip>
               <Box color={'myGray.600'} ml={2}>
-                {aiPointsUsageMap.value}/{aiPointsUsageMap.max}
+                {aiPointsUsageMap.used}/{aiPointsUsageMap.max}
               </Box>
             </Flex>
           </Flex>
-          <Box mt={1}>
+          <Box mt={3}>
             <Progress
               size={'sm'}
-              value={aiPointsUsageMap.rate}
-              colorScheme={valueColorSchema(aiPointsUsageMap.rate)}
+              value={aiPointsUsageMap.value}
+              colorScheme={aiPointsUsageMap.colorScheme}
               borderRadius={'md'}
               isAnimated
               hasStripe
@@ -635,42 +616,6 @@ const PlanUsage = () => {
             />
           </Box>
         </Box>
-
-        <MyDivider />
-
-        {limitData.map((item) => {
-          return (
-            <Box
-              key={item.label}
-              _notFirst={{
-                mt: 4
-              }}
-              width={'100%'}
-              fontSize={'sm'}
-            >
-              <Flex alignItems={'center'}>
-                <Box fontWeight={'bold'} color={'myGray.900'}>
-                  {item.label}
-                </Box>
-                <Box color={'myGray.600'} ml={2}>
-                  {item.value}/{item.max}
-                </Box>
-              </Flex>
-              <Box mt={1}>
-                <Progress
-                  size={'sm'}
-                  value={item.rate}
-                  colorScheme={valueColorSchema(item.rate)}
-                  borderRadius={'md'}
-                  isAnimated
-                  hasStripe
-                  borderWidth={'1px'}
-                  borderColor={'borderColor.low'}
-                />
-              </Box>
-            </Box>
-          );
-        })}
       </Box>
       {isOpenStandardModal && <StandDetailModal onClose={onCloseStandardModal} />}
       {isOpenRedeemCouponModal && (

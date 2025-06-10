@@ -52,9 +52,6 @@ const SubSchema = new Schema({
     type: String,
     enum: Object.values(StandardSubLevelEnum)
   },
-  maxTeamMember: Number,
-  maxApp: Number,
-  maxDataset: Number,
 
   // stand sub and extra points sub. Plan total points
   totalPoints: {

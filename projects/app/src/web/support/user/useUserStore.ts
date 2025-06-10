@@ -1,11 +1,13 @@
 import { create, devtools, persist, immer } from '@fastgpt/web/common/zustand';
 
 import type { UserUpdateParams } from '@/types/user';
+import { useSystemStore } from '@/web/common/system/useSystemStore';
 import { getTokenLogin, putUserInfo } from '@/web/support/user/api';
 import type { OrgType } from '@fastgpt/global/support/user/team/org/type';
 import type { UserType } from '@fastgpt/global/support/user/type.d';
-import type { ClientTeamPlanStatusType } from '@fastgpt/global/support/wallet/sub/type';
+import type { FeTeamPlanStatusType } from '@fastgpt/global/support/wallet/sub/type';
 import { getTeamPlanStatus } from './team/api';
+import { getGroupList } from './team/group/api';
 
 type State = {
   systemMsgReadId: string;
@@ -20,7 +22,7 @@ type State = {
   setUserInfo: (user: UserType | null) => void;
   updateUserInfo: (user: UserUpdateParams) => Promise<void>;
 
-  teamPlanStatus: ClientTeamPlanStatusType | null;
+  teamPlanStatus: FeTeamPlanStatusType | null;
   initTeamPlanStatus: () => Promise<any>;
 
   teamOrgs: OrgType[];
