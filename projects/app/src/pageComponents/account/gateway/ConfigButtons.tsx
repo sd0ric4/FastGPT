@@ -15,6 +15,9 @@ import { saveCopyRightConfig } from './CopyrightTable';
 import type { AppSimpleEditFormType } from '@fastgpt/global/core/app/type';
 import { form2AppWorkflow } from '@/web/core/app/utils';
 import { useSystemStore } from '@/web/common/system/useSystemStore';
+import { postUpdateAppCollaborators } from '@/web/core/app/api/collaborator';
+import { WritePermissionVal } from '@fastgpt/global/support/permission/constant';
+import { useUserStore } from '@/web/support/user/useUserStore';
 
 type Props = {
   tab: 'home' | 'copyright' | 'app' | 'logs';
@@ -27,6 +30,7 @@ const ConfigButtons = ({ tab, appForm, gateConfig, copyRightConfig }: Props) => 
   const { t } = useTranslation();
   const { toast } = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { userInfo } = useUserStore();
 
   // 保存配置
   const { runAsync: saveHomeConfig, loading: savingHome } = useRequest2(
@@ -129,7 +133,7 @@ const ConfigButtons = ({ tab, appForm, gateConfig, copyRightConfig }: Props) => 
           });
         }
       } else {
-        await postCreateApp({
+        const newApp = await postCreateApp({
           avatar: gateConfig?.logo,
           name: 'App',
           intro: gateConfig?.slogan,
@@ -156,6 +160,28 @@ const ConfigButtons = ({ tab, appForm, gateConfig, copyRightConfig }: Props) => 
               maxFiles: 10
             }
           }
+        });
+
+        // 为新创建的应用设置权限
+        if (newApp) {
+          await postUpdateAppCollaborators({
+            appId: newApp,
+            members: [],
+            groups: userInfo?.team.teamId ? [userInfo.team.teamId] : [],
+            orgs: [],
+            permission: WritePermissionVal
+          });
+        }
+      }
+
+      // 更新现有应用的权限 - 设置所有人可读可写
+      if (gateApp) {
+        await postUpdateAppCollaborators({
+          appId: gateApp._id,
+          members: [],
+          groups: userInfo?.team.teamId ? [userInfo.team.teamId] : [],
+          orgs: [],
+          permission: WritePermissionVal
         });
       }
     } catch (error) {
