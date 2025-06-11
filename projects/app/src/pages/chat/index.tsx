@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import NextHead from '@/components/common/NextHead';
 import { useRouter } from 'next/router';
 import { getInitChatInfo } from '@/web/core/chat/api';
@@ -37,6 +37,7 @@ import ChatRecordContextProvider, {
   ChatRecordContext
 } from '@/web/core/chat/context/chatRecordContext';
 import ChatQuoteList from '@/pageComponents/chat/ChatQuoteList';
+import FoldButton from '@/pageComponents/chat/FolderButton';
 
 const CustomPluginRunBox = dynamic(() => import('@/pageComponents/chat/CustomPluginRunBox'));
 
@@ -54,6 +55,7 @@ const Chat = ({ myApps }: { myApps: AppListItemType[] }) => {
   const forbidLoadChat = useContextSelector(ChatContext, (v) => v.forbidLoadChat);
   const onChangeChatId = useContextSelector(ChatContext, (v) => v.onChangeChatId);
   const onUpdateHistoryTitle = useContextSelector(ChatContext, (v) => v.onUpdateHistoryTitle);
+  const [sidebarFolded, setSidebarFolded] = useState(false);
 
   const resetVariables = useContextSelector(ChatItemContext, (v) => v.resetVariables);
   const isPlugin = useContextSelector(ChatItemContext, (v) => v.isPlugin);
@@ -141,6 +143,9 @@ const Chat = ({ myApps }: { myApps: AppListItemType[] }) => {
     },
     [appId, chatId, onUpdateHistoryTitle, setChatBoxData, forbidLoadChat]
   );
+  const handleFoldChange = useCallback((isFolded: boolean) => {
+    setSidebarFolded(isFolded);
+  }, []);
 
   const RenderHistorySlider = useMemo(() => {
     const Children = (
@@ -148,7 +153,13 @@ const Chat = ({ myApps }: { myApps: AppListItemType[] }) => {
     );
 
     return isPc || !appId ? (
-      <SideBar externalTrigger={!!datasetCiteData}>{Children}</SideBar>
+      <SideBar
+        externalTrigger={!!datasetCiteData}
+        onFoldChange={handleFoldChange}
+        defaultFolded={sidebarFolded}
+      >
+        {Children}
+      </SideBar>
     ) : (
       <Drawer
         isOpen={isOpenSlider}
@@ -161,7 +172,16 @@ const Chat = ({ myApps }: { myApps: AppListItemType[] }) => {
         <DrawerContent maxWidth={'75vw'}>{Children}</DrawerContent>
       </Drawer>
     );
-  }, [t, isPc, appId, isOpenSlider, onCloseSlider, datasetCiteData]);
+  }, [
+    t,
+    isPc,
+    appId,
+    datasetCiteData,
+    handleFoldChange,
+    sidebarFolded,
+    isOpenSlider,
+    onCloseSlider
+  ]);
 
   return (
     <Flex h={'100%'}>
@@ -175,6 +195,15 @@ const Chat = ({ myApps }: { myApps: AppListItemType[] }) => {
 
       {(!datasetCiteData || isPc) && (
         <PageContainer flex={'1 0 0'} w={0} p={[0, '16px']} position={'relative'}>
+          {sidebarFolded && isPc && appId && (
+            <Box position="absolute" left="-8px" top="50%" transform="translateY(-50%)" zIndex={10}>
+              <FoldButton
+                isFolded={true}
+                onClick={() => setSidebarFolded(false)}
+                position="navbar"
+              />
+            </Box>
+          )}
           <Flex h={'100%'} flexDirection={['column', 'row']}>
             {/* pc always show history. */}
             {RenderHistorySlider}
