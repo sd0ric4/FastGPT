@@ -2,6 +2,11 @@ import { isTestEnv } from '@fastgpt/global/common/system/constants';
 import { addLog } from '../../common/system/log';
 import type { Model } from 'mongoose';
 import mongoose, { Mongoose } from 'mongoose';
+import type {
+  SchemaDefinitionWithComment,
+  SchemaOptionsWithComment,
+  SchemaWithComment
+} from './type';
 
 export default mongoose;
 export * from 'mongoose';
@@ -23,6 +28,32 @@ export const connectionLogMongo = (() => {
   return global.mongodbLog;
 })();
 
+// 为 Schema 添加 comment 支持的函数
+export const createSchemaWithComment = (
+  definition: SchemaDefinitionWithComment,
+  options: SchemaOptionsWithComment
+): SchemaWithComment => {
+  // 创建标准的 mongoose schema
+  const schema = new mongoose.Schema(definition, options);
+
+  // 扩展 schema 对象，添加 comment 属性
+  const extendedSchema = Object.assign(schema, {
+    comment: options.comment
+  }) as SchemaWithComment;
+
+  // 为每个字段添加 comment 到 schema path（如果存在）
+  Object.keys(definition).forEach((fieldName) => {
+    const fieldDef = definition[fieldName];
+    if (fieldDef && typeof fieldDef === 'object' && 'comment' in fieldDef && fieldDef.comment) {
+      const schemaPath = schema.path(fieldName);
+      if (schemaPath) {
+        (schemaPath as any).comment = fieldDef.comment;
+      }
+    }
+  });
+
+  return extendedSchema;
+};
 const addCommonMiddleware = (schema: mongoose.Schema) => {
   const operations = [
     /^find/,
@@ -106,3 +137,6 @@ const syncMongoIndex = async (model: Model<any>) => {
 };
 
 export const ReadPreference = connectionMongo.mongo.ReadPreference;
+
+export * from './utils';
+export * from './modelWithComments';

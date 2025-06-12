@@ -1,5 +1,5 @@
 import { AppTypeEnum } from '@fastgpt/global/core/app/constants';
-import { Schema, getMongoModel } from '../../common/mongo';
+import { createSchemaWithComment, Schema, getMongoModel, withComments } from '../../common/mongo';
 import type { AppSchema as AppType } from '@fastgpt/global/core/app/type.d';
 import {
   TeamCollectionName,
@@ -22,103 +22,131 @@ export const chatConfigType = {
 };
 
 // schema
-const AppSchema = new Schema({
-  parentId: {
-    type: Schema.Types.ObjectId,
-    ref: AppCollectionName,
-    default: null
-  },
-  teamId: {
-    type: Schema.Types.ObjectId,
-    ref: TeamCollectionName,
-    required: true
-  },
-  tmbId: {
-    type: Schema.Types.ObjectId,
-    ref: TeamMemberCollectionName,
-    required: true
-  },
-  name: {
-    type: String,
-    required: true
-  },
-  type: {
-    type: String,
-    default: AppTypeEnum.workflow,
-    enum: Object.values(AppTypeEnum)
-  },
-  version: {
-    type: String,
-    enum: ['v1', 'v2']
-  },
-  avatar: {
-    type: String,
-    default: '/icon/logo.svg'
-  },
-  intro: {
-    type: String,
-    default: ''
-  },
 
-  updateTime: {
-    type: Date,
-    default: () => new Date()
-  },
-
-  // role and auth
-  teamTags: {
-    type: [String]
-  },
-
-  // save app(Not publish)
-  modules: {
-    type: Array,
-    default: []
-  },
-  edges: {
-    type: Array,
-    default: []
-  },
-  chatConfig: {
-    type: chatConfigType
-  },
-  // plugin config
-  pluginData: {
+const AppSchema = createSchemaWithComment(
+  {
+    parentId: {
+      type: Schema.Types.ObjectId,
+      ref: AppCollectionName,
+      default: null,
+      comment: '父应用ID，用于应用继承关系'
+    },
+    teamId: {
+      type: Schema.Types.ObjectId,
+      ref: TeamCollectionName,
+      required: true,
+      comment: '所属团队ID，必填字段'
+    },
+    tmbId: {
+      type: Schema.Types.ObjectId,
+      ref: TeamMemberCollectionName,
+      required: true,
+      comment: '团队成员ID，标识创建者'
+    },
+    name: {
+      type: String,
+      required: true,
+      comment: '应用名称'
+    },
     type: {
-      nodeVersion: String,
-      pluginUniId: String,
-      apiSchemaStr: String, // http plugin
-      customHeaders: String // http plugin
+      type: String,
+      default: AppTypeEnum.workflow,
+      enum: Object.values(AppTypeEnum),
+      comment: '应用类型，如工作流、插件等'
+    },
+    version: {
+      type: String,
+      enum: ['v1', 'v2'],
+      comment: '应用版本号'
+    },
+    avatar: {
+      type: String,
+      default: '/icon/logo.svg',
+      comment: '应用头像'
+    },
+    intro: {
+      type: String,
+      default: '',
+      comment: '应用介绍'
+    },
+
+    updateTime: {
+      type: Date,
+      default: () => new Date(),
+      comment: '更新时间'
+    },
+
+    // role and auth
+    teamTags: {
+      type: [String],
+      comment: '团队标签'
+    },
+
+    // save app(Not publish)
+    modules: {
+      type: Array,
+      default: [],
+      comment: '应用模块配置'
+    },
+    edges: {
+      type: Array,
+      default: [],
+      comment: '模块连接关系'
+    },
+    chatConfig: {
+      type: chatConfigType,
+      comment: '聊天配置'
+    },
+    // plugin config
+    pluginData: {
+      type: {
+        nodeVersion: String,
+        pluginUniId: String,
+        apiSchemaStr: String, // http plugin
+        customHeaders: String // http plugin
+      },
+      comment: '插件数据配置'
+    },
+
+    scheduledTriggerConfig: {
+      type: {
+        cronString: {
+          type: String
+        },
+        timezone: {
+          type: String
+        },
+        defaultPrompt: {
+          type: String
+        }
+      },
+      comment: '定时触发配置'
+    },
+    scheduledTriggerNextTime: {
+      type: Date,
+      comment: '下次定时触发时间'
+    },
+
+    inited: {
+      type: Boolean,
+      comment: '是否已初始化'
+    },
+    inheritPermission: {
+      type: Boolean,
+      default: true,
+      comment: '是否继承权限'
+    },
+
+    // abandoned
+    defaultPermission: {
+      type: Number,
+      comment: '默认权限（已废弃）'
     }
   },
-
-  scheduledTriggerConfig: {
-    cronString: {
-      type: String
-    },
-    timezone: {
-      type: String
-    },
-    defaultPrompt: {
-      type: String
-    }
-  },
-  scheduledTriggerNextTime: {
-    type: Date
-  },
-
-  inited: {
-    type: Boolean
-  },
-  inheritPermission: {
-    type: Boolean,
-    default: true
-  },
-
-  // abandoned
-  defaultPermission: Number
-});
-
+  {
+    comment: 'App schema for managing applications within a team'
+  }
+);
 AppSchema.index({ type: 1 });
 AppSchema.index({ teamId: 1, updateTime: -1 });
 AppSchema.index({ teamId: 1, type: 1 });
@@ -132,3 +160,6 @@ AppSchema.index(
 );
 
 export const MongoApp = getMongoModel<AppType>(AppCollectionName, AppSchema);
+
+// 导出带comment功能的模型，推荐在需要访问comment的地方使用
+export const MongoAppWithComments = withComments(MongoApp);
