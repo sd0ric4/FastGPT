@@ -1,5 +1,4 @@
 import { AppTypeEnum } from 'core/app/constants';
-import path from 'path';
 import { z } from 'zod';
 import zodToJsonSchema from 'zod-to-json-schema';
 
