@@ -25,12 +25,6 @@ export const OrgMemberSchema = new Schema({
     ref: TeamMemberCollectionName,
     required: true
   }
-  // role: {
-  //   type: String,
-  //   enum: Object.values(OrgMemberRole),
-  //   required: true,
-  //   default: OrgMemberRole.member
-  // }
 });
 
 OrgMemberSchema.virtual('org', {
