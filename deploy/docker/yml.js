@@ -74,7 +74,7 @@ services:
 
   fastgpt:
     container_name: fastgpt
-    image: ghcr.io/labring/fastgpt:v4.9.14 # git
+    image: ghcr.io/labring/fastgpt:v4.10.0-alpha # git
     # image: registry.cn-hangzhou.aliyuncs.com/fastgpt/fastgpt:v4.9.14 # 阿里云
     ports:
       - 3000:3000
@@ -149,8 +149,8 @@ services:
       - FASTGPT_ENDPOINT=http://fastgpt:3000
   # fastgpt-plugin
   fastgpt-plugin:
-    image: ghcr.io/labring/fastgpt-plugin:v0.1 # git
-    # image: registry.cn-hangzhou.aliyuncs.com/fastgpt/fastgpt-plugin:v0.1 # 阿里云
+    image: ghcr.io/labring/fastgpt-plugin:v0.0.1 # git
+    # image: registry.cn-hangzhou.aliyuncs.com/fastgpt/fastgpt-plugin:v0.1-alpha # 阿里云
     container_name: fastgpt-plugin
     restart: always
     networks:
@@ -158,14 +158,14 @@ services:
     environment:
       - AUTH_TOKEN=xxxxxx # disable authentication token if you do not set this variable
       # 改成 minio 公网地址
-      - MINIO_HOST=ip:9000
+      - MINIO_HOST=fastgpt-plugin-minio
       - MINIO_PORT=9000
       - MINIO_USE_SSL=false
       - MINIO_ACCESS_KEY=minioadmin
       - MINIO_SECRET_KEY=minioadmin
       - MINIO_BUCKET=fastgpt-plugins
     depends_on:
-      - fastgpt-plugin-minio:
+      fastgpt-plugin-minio:
           condition: service_healthy
   fastgpt-plugin-minio:
     image: minio/minio:latest
@@ -173,9 +173,9 @@ services:
     restart: always
     networks:
       - fastgpt
-    ports: # comment out if you do not need to expose the port (in production environment, you should not expose the port)
-      - '9000:9000'
-      - '9001:9001'
+    # ports: # comment out if you do not need to expose the port (in production environment, you should not expose the port)
+    #  - '9000:9000'
+    #  - '9001:9001'
     environment:
       - MINIO_ROOT_USER=minioadmin
       - MINIO_ROOT_PASSWORD=minioadmin
@@ -241,10 +241,10 @@ networks:
 `
 
 const list = [
-    {
-        filename: "./docker-compose-pgvector.yml",
-        depends: `- pg`,
-        service: `pg:
+  {
+    filename: "./docker-compose-pgvector.yml",
+    depends: `- pg`,
+    service: `pg:
     image: pgvector/pgvector:0.8.0-pg15 # docker hub
     # image: registry.cn-hangzhou.aliyuncs.com/fastgpt/pgvector:v0.8.0-pg15 # 阿里云
     container_name: pg
@@ -265,20 +265,20 @@ const list = [
       interval: 5s
       timeout: 5s
       retries: 10`,
-        env: `- PG_URL=postgresql://username:password@pg:5432/postgres`
-    },
-    {
-        filename: "./docker-compose-zilliz.yml",
-        depends: ``,
-        service: ``,
-        env: `# zilliz 连接参数
+    env: `- PG_URL=postgresql://username:password@pg:5432/postgres`
+  },
+  {
+    filename: "./docker-compose-zilliz.yml",
+    depends: ``,
+    service: ``,
+    env: `# zilliz 连接参数
       - MILVUS_ADDRESS=zilliz_cloud_address
       - MILVUS_TOKEN=zilliz_cloud_token`
-    },
-    {
-        filename: "./docker-compose-milvus.yml",
-        depends: `- milvusStandalone`,
-        service: `milvus-minio:
+  },
+  {
+    filename: "./docker-compose-milvus.yml",
+    depends: `- milvusStandalone`,
+    service: `milvus-minio:
     container_name: milvus-minio
     image: minio/minio:RELEASE.2023-03-20T20-16-18Z
     environment:
@@ -338,13 +338,13 @@ const list = [
     depends_on:
       - 'milvusEtcd'
       - 'milvus-minio'`,
-        env: `- MILVUS_ADDRESS=http://milvusStandalone:19530
+    env: `- MILVUS_ADDRESS=http://milvusStandalone:19530
       - MILVUS_TOKEN=none`
-    },
-    {
-        filename: "./docker-compose-oceanbase/docker-compose.yml",
-        depends: `- ob`,
-        service: `ob:
+  },
+  {
+    filename: "./docker-compose-oceanbase/docker-compose.yml",
+    depends: `- ob`,
+    service: `ob:
     image: oceanbase/oceanbase-ce:4.3.5-lts # docker hub
     # image: quay.io/oceanbase/oceanbase-ce:4.3.5-lts # 镜像
     container_name: ob
@@ -379,12 +379,12 @@ const list = [
       timeout: 10s
       retries: 1000
       start_period: 10s`,
-        env: `- OCEANBASE_URL=mysql://root%40tenantname:tenantpassword@ob:2881/test`
-    }
+    env: `- OCEANBASE_URL=mysql://root%40tenantname:tenantpassword@ob:2881/test`
+  }
 ]
 
 list.forEach(item => {
-    const { filename, service, env, depends } = item
-    const content = template.replace("{{Vector_DB_Service}}", service).replace("{{Vector_DB_ENV}}", env).replace("{{Vector_DB_Depends}}", depends)
-    fs.writeFileSync(filename, content, 'utf-8')
+  const { filename, service, env, depends } = item
+  const content = template.replace("{{Vector_DB_Service}}", service).replace("{{Vector_DB_ENV}}", env).replace("{{Vector_DB_Depends}}", depends)
+  fs.writeFileSync(filename, content, 'utf-8')
 })
