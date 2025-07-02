@@ -38,6 +38,10 @@ declare global {
       PASSWORD_LOGIN_LOCK_SECONDS?: string;
       PASSWORD_EXPIRED_MONTH?: string;
       MAX_LOGIN_SESSION?: string;
+      // # SigNoz OpenTelemetry 配置
+      ENABLE_SIGNOZ_TRACING?: string;
+      SIGNOZ_SERVICE_NAME?: string;
+      SIGNOZ_TRACES_URL?: string;
     }
   }
 }

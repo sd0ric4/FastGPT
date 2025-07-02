@@ -5,6 +5,27 @@ import { exit } from 'process';
 */
 export async function register() {
   try {
+    // 初始化 OpenTelemetry (SigNoz)
+    if (process.env.NEXT_RUNTIME === 'nodejs' && process.env.ENABLE_SIGNOZ_TRACING === 'true') {
+      try {
+        const { registerOTel, OTLPHttpJsonTraceExporter } = await import('@vercel/otel');
+        const { diag, DiagConsoleLogger, DiagLogLevel } = await import('@opentelemetry/api');
+
+        diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.ERROR);
+
+        registerOTel({
+          serviceName: process.env.SIGNOZ_SERVICE_NAME || 'fastgpt-app',
+          traceExporter: new OTLPHttpJsonTraceExporter({
+            url: process.env.SIGNOZ_TRACES_URL || 'http://localhost:4318/v1/traces'
+          })
+        });
+
+        console.log('OpenTelemetry initialized successfully');
+      } catch (error) {
+        console.error('Failed to initialize OpenTelemetry:', error);
+      }
+    }
+
     if (process.env.NEXT_RUNTIME === 'nodejs') {
       // 基础系统初始化
       const [
