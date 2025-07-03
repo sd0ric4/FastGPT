@@ -616,6 +616,19 @@ export const ModelEditModal = ({
                       </Flex>
                     </Td>
                   </Tr>
+                  <Tr>
+                    <Td>
+                      <HStack spacing={1}>
+                        <Box>{t('account:reasoning.switch')}</Box>
+                        <QuestionTip label={t('account:reasoning.switch_tip')} />
+                      </HStack>
+                    </Td>
+                    <Td textAlign={'right'}>
+                      <Flex justifyContent={'flex-end'}>
+                        <Switch {...register('reasoningSwitch')} />
+                      </Flex>
+                    </Td>
+                  </Tr>
                   {feConfigs?.isPlus && (
                     <Tr>
                       <Td>

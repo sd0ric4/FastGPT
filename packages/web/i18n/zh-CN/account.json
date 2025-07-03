@@ -79,6 +79,8 @@
   "personal_information": "个人信息",
   "personalization": "个性化",
   "promotion_records": "促销记录",
+  "reasoning.switch": "支持切换思考方式",
+  "reasoning.switch_tip": "例如 Qwen3 支持切换模型的推理思考模式，如直接回答或输出思考链",
   "reset_default": "恢复默认配置",
   "team": "团队管理",
   "third_party": "第三方账号",

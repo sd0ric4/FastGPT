@@ -41,7 +41,7 @@ export type LLMModelItemType = PriceType &
     censor?: boolean;
     vision?: boolean;
     reasoning?: boolean;
-
+    reasoningSwitch?: boolean;
     // diff function model
     datasetProcess?: boolean; // dataset
     usedInClassify?: boolean; // classify

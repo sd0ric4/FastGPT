@@ -79,6 +79,8 @@
   "personal_information": "Personal",
   "personalization": "Personalization",
   "promotion_records": "Promotions",
+  "reasoning.switch": "Support switching thinking methods",
+  "reasoning.switch_tip": "For example, Qwen3 supports switching the inference thinking mode of the model, such as direct answer or output thinking chain",
   "reset_default": "Restore the default configuration",
   "team": "Team",
   "third_party": "Third Party",
